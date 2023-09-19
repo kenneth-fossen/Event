@@ -1,4 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
+// See https://aka.ms/new-console-template for more information
 
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
@@ -139,8 +139,8 @@ else
 internal record GrapQlReponse(Data Data);
 
 internal class Data {
-    public IList<InvitedEvents> InvitedEvents { get; set; }
-    public Event Event { get; set; }
+    public IList<InvitedEvents>? InvitedEvents { get; set; }
+    public Event? Event { get; set; }
 }
 
 
@@ -159,9 +159,9 @@ internal record Participant
 
 internal class InvitedEvents
 {
-    public string Id { get; set; }
-    public string EventName { get; set; }
-    public string Owner { get; set; }
-    public string StartDate { get; set; }
-    public string EndDate { get; set; }
+    public string? Id { get; set; }
+    public string? EventName { get; set; }
+    public string? Owner { get; set; }
+    public string? StartDate { get; set; }
+    public string? EndDate { get; set; }
 }
