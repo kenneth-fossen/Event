@@ -108,15 +108,7 @@ if (response.IsSuccessStatusCode)
             if (participant.AcceptanceStatus == "GOING")
             {
                 var output = new StringBuilder();
-                if (participant.Name.Length < 15 && !string.IsNullOrWhiteSpace(participant.Name))
-                {
-                    output.Append($"| {participant.Name} \t\t|");
-                }
-                else
-                {
-                    output.Append($"| {participant.Name} \t|");
-                }
-
+                output.Append($"| {participant.Name} \t|");
                 output.Append($" {participant.Unit} | \t |{participant.ShowAllergies}");
                 Console.WriteLine(output);
             }
