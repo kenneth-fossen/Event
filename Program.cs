@@ -1,7 +1,6 @@
 // See https://aka.ms/new-console-template for more information
 
 using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 
@@ -28,12 +27,12 @@ const string baseUrl = "https://event.bouvet.no";
 const string endpoint = $"{baseUrl}/graphql";
 
 var getEvents = $$$"""
-                {
-                  "operationName": "GetInvitedEvents",
-                  "variables": {},
-                  "query": "query GetInvitedEvents {\n  invitedEvents {\n    id\n    eventName\n    description\n    location\n    summary\n    startDate\n    endDate\n    responseDeadline\n    minParticipants\n    maxParticipants\n    numberOfGuestsAllowed\n    requireResponse\n    attendenceCount\n    isSocial\n    ownerName\n    collaborators\n    __typename\n  }\n}\n"
-                }
-""";
+                                   {
+                                     "operationName": "GetInvitedEvents",
+                                     "variables": {},
+                                     "query": "query GetInvitedEvents {\n  invitedEvents {\n    id\n    eventName\n    description\n    location\n    summary\n    startDate\n    endDate\n    responseDeadline\n    minParticipants\n    maxParticipants\n    numberOfGuestsAllowed\n    requireResponse\n    attendenceCount\n    isSocial\n    ownerName\n    collaborators\n    __typename\n  }\n}\n"
+                                   }
+                   """;
 
 var serializeOptions = new JsonSerializerOptions
 {
@@ -47,6 +46,7 @@ httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(
 
 var eventResponse = await httpClient.PostAsync(endpoint, new StringContent(getEvents, Encoding.UTF8, applicationJson));
 eventResponse.EnsureSuccessStatusCode();
+Console.WriteLine("Wiii are GAME!");
 var eventListResponseContent = await eventResponse.Content.ReadAsStringAsync();
 var eventListSelector = new Dictionary<int, string>();
 try
@@ -54,11 +54,23 @@ try
     var eventList = JsonSerializer.Deserialize<GrapQlReponse>(eventListResponseContent, serializeOptions);
 
     Console.WriteLine(div);
-    foreach (var (invitedEvent, idx) in eventList.Data.InvitedEvents.Select((events, i) => (events, i)))
+    Console.WriteLine("| Id \t | StartDate \t | Name");
+
+    Console.WriteLine(div);
+    var invitedEventWithIdx = eventList?.Data
+        .InvitedEvents!
+        .OrderBy(e => e.StartDate)
+        .Select((events, i) => (events, i));
+
+    foreach (var (invitedEvent, idx) in invitedEventWithIdx!)
     {
-        Console.WriteLine($"{idx} \t | {invitedEvent.Id} \t | {invitedEvent.EventName}");
-        eventListSelector.Add(idx, invitedEvent.Id);
+        Console.WriteLine($"{idx} \t | {invitedEvent.StartDate}\t | {invitedEvent.EventName}");
+        if (invitedEvent.Id != null)
+        {
+            eventListSelector.Add(idx, invitedEvent.Id);
+        }
     }
+
     Console.WriteLine(div);
 }
 catch (Exception e)
@@ -71,7 +83,7 @@ catch (Exception e)
 Console.WriteLine("Select the ID (int) for the Event:");
 var selectedEventInt = Console.ReadLine();
 
-eventListSelector.TryGetValue(int.Parse(selectedEventInt), out var selectedEvent );
+eventListSelector.TryGetValue(int.Parse(selectedEventInt!), out var selectedEvent);
 
 var getParticipents = $$$"""
                          {
@@ -83,21 +95,19 @@ var getParticipents = $$$"""
                          }
                          """;
 
-
 var response = await httpClient.PostAsync(endpoint, new StringContent(getParticipents, Encoding.UTF8, applicationJson));
 
 Console.WriteLine($"HTTP Response Status: {response.StatusCode}");
 
 if (response.IsSuccessStatusCode)
 {
-    Console.WriteLine("Wiii are GAME!");
-
     try
     {
         var content = await response.Content.ReadAsStringAsync();
         var entity = JsonSerializer.Deserialize<GrapQlReponse>(content, serializeOptions);
         Console.WriteLine();
-        var count = entity.Data.Event.Participants.Count(p => p.AcceptanceStatus == "GOING");
+
+        var count = entity!.Data.Event!.Participants.Count(p => p.AcceptanceStatus == "GOING");
 
         Console.WriteLine(div);
         Console.WriteLine($"Attending: {entity.Data.Event.Id}: No: {count}");
@@ -113,6 +123,7 @@ if (response.IsSuccessStatusCode)
                 Console.WriteLine(output);
             }
         }
+
         Console.WriteLine(div);
     }
     catch (Exception e)
@@ -130,7 +141,8 @@ else
 
 internal record GrapQlReponse(Data Data);
 
-internal class Data {
+internal class Data
+{
     public IList<InvitedEvents>? InvitedEvents { get; set; }
     public Event? Event { get; set; }
 }
